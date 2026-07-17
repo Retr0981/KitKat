@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* KitKat global styles. Dark-first; the app forces .dark on the root. */
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  @apply bg-base-950 text-zinc-200 font-sans antialiased;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+/* Thin, DevTools-style scrollbars. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #323a4a transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  @apply bg-base-600 rounded-full;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Reusable component classes. */
+@layer components {
+  .panel {
+    @apply bg-base-900 border border-base-700 rounded-lg;
+  }
+  .btn {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium
+      bg-base-800 hover:bg-base-700 border border-base-700 transition-colors
+      disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply bg-accent hover:bg-accent-soft border-accent text-white;
+  }
+  .input {
+    @apply bg-base-850 border border-base-700 rounded-md px-2.5 py-1.5 text-sm
+      focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/40
+      placeholder:text-base-500;
+  }
+  .badge {
+    @apply inline-flex items-center px-1.5 py-0.5 rounded text-2xs font-mono font-semibold uppercase tracking-wide;
+  }
+  .badge-pass {
+    @apply bg-ok/15 text-ok border border-ok/30;
+  }
+  .badge-fail {
+    @apply bg-bad/15 text-bad border border-bad/30;
+  }
+  .badge-warn {
+    @apply bg-warn/15 text-warn border border-warn/30;
+  }
+  .badge-info {
+    @apply bg-info/15 text-info border border-info/30;
+  }
+}
