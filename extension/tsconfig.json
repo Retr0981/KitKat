@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node", "chrome"],
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "paths": {
+      "@kitkat/core": ["../packages/core/src/index.ts"],
+      "@kitkat/core/*": ["../packages/core/src/*"]
+    },
+    "baseUrl": "."
+  },
+  "include": ["src/**/*", "manifest.config.ts", "vite.config.ts"]
+}
