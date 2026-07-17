@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KitKat — Demo pages</title>
+    <link rel="stylesheet" href="/_shared/demo.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>KitKat demo pages</h1>
+      <p class="sub">Point the extension at any of these to exercise the Validator and Debugger.</p>
+      <div class="banner">
+        Each demo is a real WebMCP page. In Chrome 146+ with the WebMCP flag on, the native
+        <code>navigator.modelContext</code> is used; otherwise the bundled KitKat polyfill stands in so tools
+        are still discoverable. Either way, open DevTools → KitKat (or the popup) to inspect them.
+      </div>
+      <div class="product-grid">
+        <a class="product" href="/ecommerce/" style="text-decoration:none;color:inherit">
+          <div class="swatch" style="background:linear-gradient(135deg,#dc2626,#f97316)"></div>
+          <div class="name">🛍️ E-commerce</div>
+          <div class="sub">Imperative + declarative tools: search, cart, subscribe.</div>
+        </a>
+        <a class="product" href="/travel/" style="text-decoration:none;color:inherit">
+          <div class="swatch" style="background:linear-gradient(135deg,#6366f1,#818cf8)"></div>
+          <div class="name">✈️ Travel</div>
+          <div class="sub">Read-only search + a mutating book tool that requests consent.</div>
+        </a>
+        <a class="product" href="/forms/" style="text-decoration:none;color:inherit">
+          <div class="swatch" style="background:linear-gradient(135deg,#16a34a,#22c55e)"></div>
+          <div class="name">📝 Forms</div>
+          <div class="sub">Pure declarative tools — forms become tools with no JS.</div>
+        </a>
+      </div>
+    </div>
+  </body>
+</html>
