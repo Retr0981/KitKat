@@ -1,0 +1,42 @@
+{
+  "name": "kitkat",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The definitive open-source developer toolkit for WebMCP (Web Model Context Protocol). Postman for WebMCP, fully client-side and local.",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "extension",
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "dev": "concurrently -n core,extension,server -c blue,magenta,green \"npm run dev -w @kitkat/core\" \"npm run dev -w kitkat-extension\" \"npm run dev -w kitkat-server\"",
+    "dev:ext": "npm run dev -w kitkat-extension",
+    "dev:server": "npm run dev -w kitkat-server",
+    "web": "npm run dev -w kitkat-web",
+    "server": "npm run start -w kitkat-server",
+    "build": "npm run build -w @kitkat/core && npm run build -w kitkat-extension && npm run build -w kitkat-server && npm run build -w kitkat-web",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write \"**/*.{ts,tsx,css,md,json}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "concurrently": "^9.1.0",
+    "jsdom": "^29.1.1",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "allowScripts": {
+    "better-sqlite3@11.10.0": true
+  }
+}
