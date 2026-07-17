@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <title>KitKat Sandbox Runner</title>
+    <style>html, body { margin: 0; height: 100%; background: #0a0c10; }</style>
+  </head>
+  <body>
+    <!--
+      The sandbox runner host. Loaded into a sandboxed iframe by the Sandbox
+      module; runner.tsx installs the @kitkat/core polyfill, registers the
+      scenario's tools, and reports the tool surface back to the parent.
+    -->
+    <div id="root">KitKat sandbox runner</div>
+    <script type="module" src="./runner.tsx"></script>
+  </body>
+</html>
