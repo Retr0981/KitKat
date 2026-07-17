@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KitKat Demo — Forms</title>
+    <link rel="stylesheet" href="/_shared/demo.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>📝 Forms &amp; Support</h1>
+      <p class="sub">A demo focused on the <strong>declarative</strong> WebMCP API — pure HTML forms become tools with zero JavaScript.</p>
+
+      <div class="banner">
+        Every form below has <code>toolname</code> + <code>tooldescription</code> attributes. The browser (or
+        KitKat's polyfill) auto-derives an input schema from the controls. Toggle the Debugger's DOM overlay
+        to see each form highlighted as a tool.
+      </div>
+
+      <h2>Support request</h2>
+      <form toolname="support.createTicket" tooldescription="Open a support ticket with a message and category." class="form-card" onsubmit="return submitForm(event,'ticket')">
+        <div class="row">
+          <div class="field">
+            <label for="cat">Category</label>
+            <select id="cat" name="category">
+              <option value="billing">Billing</option>
+              <option value="technical">Technical</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="prio">Priority</label>
+            <select id="prio" name="priority">
+              <option value="low">Low</option>
+              <option value="normal">Normal</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+          <div class="field" style="flex:2">
+            <label for="msg">Message</label>
+            <input id="msg" name="message" type="text" required placeholder="Describe your issue" />
+          </div>
+          <button type="submit">Submit ticket</button>
+        </div>
+      </form>
+
+      <h2>Account registration</h2>
+      <form toolname="auth.register" tooldescription="Register a new customer account with email, name, and age." class="form-card" onsubmit="return submitForm(event,'register')">
+        <div class="row">
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" required />
+          </div>
+          <div class="field">
+            <label for="name">Full name</label>
+            <input id="name" name="name" type="text" required minlength="2" />
+          </div>
+          <div class="field">
+            <label for="age">Age</label>
+            <input id="age" name="age" type="number" min="13" max="120" />
+          </div>
+          <button type="submit">Register</button>
+        </div>
+      </form>
+
+      <h2>Feedback (optional fields)</h2>
+      <form toolname="feedback.submit" tooldescription="Submit optional feedback with a rating from 1 to 5." class="form-card" onsubmit="return submitForm(event,'feedback')">
+        <div class="row">
+          <div class="field">
+            <label for="rating">Rating</label>
+            <select id="rating" name="rating">
+              <option value="5">★★★★★</option>
+              <option value="4">★★★★</option>
+              <option value="3">★★★</option>
+              <option value="2">★★</option>
+              <option value="1">★</option>
+            </select>
+          </div>
+          <div class="field" style="flex:2">
+            <label for="comment">Comment</label>
+            <input id="comment" name="comment" type="text" placeholder="Optional" />
+          </div>
+          <button type="submit">Send feedback</button>
+        </div>
+      </form>
+    </div>
+    <div id="toast" class="toast"></div>
+
+    <script src="/_shared/kitkat-polyfill.js"></script>
+    <script>
+      function submitForm(e, kind) {
+        e.preventDefault();
+        var data = {};
+        new FormData(e.target).forEach(function (v, k) { data[k] = v; });
+        toast(kind + ' submitted: ' + JSON.stringify(data));
+        return false;
+      }
+      function toast(msg) {
+        var t = document.getElementById('toast');
+        t.textContent = msg; t.classList.add('show');
+        setTimeout(function () { t.classList.remove('show'); }, 2800);
+      }
+    </script>
+  </body>
+</html>

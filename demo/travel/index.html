@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KitKat Demo — Travel</title>
+    <link rel="stylesheet" href="/_shared/demo.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>✈️ FlyFast</h1>
+      <p class="sub">A WebMCP-enabled travel demo. Tools: <code>travel.searchFlights</code>, <code>travel.bookTrip</code>.</p>
+
+      <div class="banner">
+        This demo shows a read-only search tool plus a mutating booking tool that requests user consent
+        via <code>client.requestUserInteraction()</code> — exactly what KitKat's Validator security check looks for.
+      </div>
+
+      <form class="form-card" onsubmit="return doSearch(event)">
+        <div class="row">
+          <div class="field">
+            <label for="from">From</label>
+            <input id="from" name="from" value="SFO" required />
+          </div>
+          <div class="field">
+            <label for="to">To</label>
+            <input id="to" name="to" value="JFK" required />
+          </div>
+          <div class="field">
+            <label for="date">Date</label>
+            <input id="date" name="date" type="date" required />
+          </div>
+          <button type="submit">Search flights</button>
+        </div>
+      </form>
+
+      <h2>Results</h2>
+      <div id="results" class="product-grid"></div>
+    </div>
+    <div id="toast" class="toast"></div>
+
+    <script src="/_shared/kitkat-polyfill.js"></script>
+    <script>
+      function pseudoFlights(from, to, date) {
+        var airlines = ['FlyFast', 'SkyJet', 'AeroNimbus', 'CloudLine'];
+        var out = [];
+        for (var i = 0; i < 5; i++) {
+          out.push({
+            id: 'F-' + from + '-' + to + '-' + i,
+            airline: airlines[i % airlines.length],
+            from: from, to: to, date: date,
+            price: 120 + i * 47,
+            stops: i % 3,
+          });
+        }
+        return out;
+      }
+
+      function doSearch(e) {
+        e.preventDefault();
+        var from = document.getElementById('from').value;
+        var to = document.getElementById('to').value;
+        var date = document.getElementById('date').value;
+        renderFlights(pseudoFlights(from, to, date));
+        return false;
+      }
+      function renderFlights(list) {
+        var r = document.getElementById('results');
+        r.innerHTML = '';
+        list.forEach(function (f) {
+          var el = document.createElement('div');
+          el.className = 'product';
+          el.innerHTML =
+            '<div class="swatch" style="background:linear-gradient(135deg,#6366f1,#818cf8)"></div>' +
+            '<div class="name">' + f.airline + ' · ' + f.from + '→' + f.to + '</div>' +
+            '<div class="sub">' + f.stops + ' stop(s) · ' + f.date + '</div>' +
+            '<div class="price">$' + f.price + '</div>' +
+            '<button class="book" data-id="' + f.id + '">Book</button>';
+          el.querySelector('.book').addEventListener('click', function () { bookTrip(f.id); });
+          r.appendChild(el);
+        });
+      }
+      function bookTrip(flightId) {
+        toast('Booked ' + flightId);
+        return { ok: true, confirmation: 'CONF-' + Math.random().toString(36).slice(2, 8).toUpperCase() };
+      }
+      function toast(msg) {
+        var t = document.getElementById('toast');
+        t.textContent = msg; t.classList.add('show');
+        setTimeout(function () { t.classList.remove('show'); }, 2500);
+      }
+
+      // --- WebMCP tools -----------------------------------------------------
+      navigator.modelContext.registerTool({
+        name: 'travel.searchFlights',
+        description: 'Search available flights between two airports on a given date.',
+        annotations: { readOnlyHint: true },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            from: { type: 'string', description: 'origin airport code, e.g. SFO' },
+            to: { type: 'string', description: 'destination airport code, e.g. JFK' },
+            date: { type: 'string', format: 'date', description: 'departure date' },
+          },
+          required: ['from', 'to'],
+        },
+        execute: function (input) {
+          var results = pseudoFlights(input.from, input.to, input.date || '2026-08-01');
+          renderFlights(results);
+          return { count: results.length, results: results };
+        },
+      });
+      navigator.modelContext.registerTool({
+        name: 'travel.bookTrip',
+        description: 'Book a flight by id. Mutating — the user must confirm.',
+        inputSchema: {
+          type: 'object',
+          properties: { flightId: { type: 'string', description: 'flight identifier' } },
+          required: ['flightId'],
+        },
+        execute: function (input, client) {
+          return client.requestUserInteraction('Confirm booking for flight ' + input.flightId + '?').then(function (ok) {
+            if (!ok) return { ok: false, reason: 'declined' };
+            return bookTrip(input.flightId);
+          });
+        },
+      });
+    </script>
+  </body>
+</html>
