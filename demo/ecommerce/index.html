@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KitKat Demo — E-commerce</title>
+    <link rel="stylesheet" href="/_shared/demo.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>🛍️ Acme Shop</h1>
+      <p class="sub">A WebMCP-enabled demo store. Tools: <code>shop.searchProducts</code>, <code>shop.addToCart</code>, plus a declarative form.</p>
+
+      <div class="banner">
+        Point the KitKat extension at this page. You should see tools appear in the Validator + Debugger
+        within ~2 seconds. This page registers tools via the imperative API
+        (<code>navigator.modelContext.registerTool</code>) and exposes a declarative form
+        (<code>&lt;form toolname&gt;</code>) below.
+      </div>
+
+      <div class="toolbar">
+        <input id="q" class="" style="flex:1;min-width:200px" placeholder="Search dresses…" />
+        <select id="color"><option value="">any color</option><option>red</option><option>blue</option><option>green</option><option>black</option></select>
+        <button class="ghost" onclick="runSearch()">Search</button>
+        <span class="status"><span class="dot"></span><span id="apiStatus">checking API…</span></span>
+      </div>
+
+      <div id="grid" class="product-grid"></div>
+
+      <h2>Declarative tool — newsletter signup</h2>
+      <p class="sub">This form is a WebMCP tool via HTML attributes only. Toggle the DOM overlay in the Debugger to see it highlighted.</p>
+      <form toolname="shop.subscribe" tooldescription="Subscribe a customer to the newsletter" class="form-card" onsubmit="return subscribeSubmit(event)">
+        <div class="row">
+          <div class="field">
+            <label for="email">Email (required)</label>
+            <input id="email" name="email" type="email" required placeholder="you@example.com" />
+          </div>
+          <div class="field">
+            <label for="freq">Frequency</label>
+            <select id="freq" name="frequency">
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </div>
+          <button type="submit">Subscribe</button>
+        </div>
+      </form>
+    </div>
+    <div id="toast" class="toast"></div>
+
+    <script src="/_shared/kitkat-polyfill.js"></script>
+    <script>
+      var PRODUCTS = [
+        { id: 'p1', name: 'Summer Dress', color: 'red', price: 49 },
+        { id: 'p2', name: 'Linen Shirt', color: 'blue', price: 39 },
+        { id: 'p3', name: 'Wool Coat', color: 'black', price: 129 },
+        { id: 'p4', name: 'Garden Hat', color: 'green', price: 22 },
+        { id: 'p5', name: 'Silk Scarf', color: 'red', price: 18 },
+        { id: 'p6', name: 'Denim Jeans', color: 'blue', price: 59 },
+      ];
+      var cart = [];
+
+      function colorToHex(c) {
+        return { red:'#dc2626', blue:'#2563eb', green:'#16a34a', black:'#111827' }[c] || '#71717a';
+      }
+      function render(list) {
+        var g = document.getElementById('grid');
+        g.innerHTML = '';
+        if (!list.length) { g.innerHTML = '<p class="sub">No products match.</p>'; return; }
+        list.forEach(function (p) {
+          var el = document.createElement('div');
+          el.className = 'product';
+          el.innerHTML =
+            '<div class="swatch" style="background:' + colorToHex(p.color) + '"></div>' +
+            '<div class="name">' + p.name + '</div>' +
+            '<div class="sub">' + p.color + '</div>' +
+            '<div class="price">$' + p.price + '</div>' +
+            '<button class="add" data-id="' + p.id + '">Add to cart</button>';
+          el.querySelector('.add').addEventListener('click', function () { addToCart(p.id); });
+          g.appendChild(el);
+        });
+      }
+
+      function searchProducts(query, color) {
+        var q = (query || '').toLowerCase();
+        return PRODUCTS.filter(function (p) {
+          var matchQ = !q || p.name.toLowerCase().indexOf(q) >= 0;
+          var matchC = !color || p.color === color;
+          return matchQ && matchC;
+        });
+      }
+      function addToCart(productId) {
+        var p = PRODUCTS.find(function (x) { return x.id === productId; });
+        if (!p) throw new Error('Unknown product: ' + productId);
+        cart.push(p);
+        toast('Added ' + p.name + ' · cart: $' + cart.reduce(function (s, x) { return s + x.price; }, 0));
+        return { ok: true, added: p.id, cartSize: cart.length };
+      }
+      function runSearch() {
+        render(searchProducts(document.getElementById('q').value, document.getElementById('color').value));
+      }
+
+      function subscribeSubmit(e) {
+        e.preventDefault();
+        toast('Subscribed ' + document.getElementById('email').value + ' (declarative tool)');
+        return false;
+      }
+
+      function toast(msg) {
+        var t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(function () { t.classList.remove('show'); }, 2500);
+      }
+
+      // --- Register imperative WebMCP tools ---------------------------------
+      function registerTools() {
+        var mc = navigator.modelContext;
+        mc.registerTool({
+          name: 'shop.searchProducts',
+          description: 'Search the product catalog by free-text query and optional color filter.',
+          annotations: { readOnlyHint: true },
+          inputSchema: {
+            type: 'object',
+            properties: {
+              query: { type: 'string', description: 'free-text product search' },
+              color: { type: 'string', enum: ['red', 'blue', 'green', 'black'], description: 'optional color filter' },
+            },
+          },
+          execute: function (input) {
+            var results = searchProducts(input.query, input.color);
+            render(results);
+            return { count: results.length, results: results };
+          },
+        });
+        mc.registerTool({
+          name: 'shop.addToCart',
+          description: 'Add a product to the shopping cart by id. Mutating — requests user consent.',
+          inputSchema: {
+            type: 'object',
+            properties: { productId: { type: 'string', description: 'product id, e.g. p1' } },
+            required: ['productId'],
+          },
+          execute: function (input, client) {
+            return client.requestUserInteraction('Add product ' + input.productId + ' to cart?').then(function (ok) {
+              if (!ok) return { ok: false, reason: 'declined' };
+              return addToCart(input.productId);
+            });
+          },
+        });
+        mc.registerTool({
+          name: 'shop.getCart',
+          description: 'Return the current cart contents and total.',
+          annotations: { readOnlyHint: true },
+          execute: function () {
+            return { items: cart, total: cart.reduce(function (s, x) { return s + x.price; }, 0) };
+          },
+        });
+      }
+
+      // --- Boot -------------------------------------------------------------
+      document.getElementById('apiStatus').textContent =
+        window.__kitkatPolyfill ? 'polyfill active' : 'native WebMCP';
+      registerTools();
+      render(PRODUCTS);
+    </script>
+  </body>
+</html>
