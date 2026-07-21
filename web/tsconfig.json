@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "noEmit": true,
+    "moduleResolution": "bundler",
+    "paths": {
+      "@kitkat/core": ["../packages/core/src/index.ts"],
+      "@kitkat/core/*": ["../packages/core/src/*"],
+      "@kitkat/ui": ["../packages/ui/src/index.ts"],
+      "@kitkat/ui/*": ["../packages/ui/src/*"]
+    },
+    "baseUrl": "."
+  },
+  "include": ["src/**/*", "vite.config.ts", "tailwind.config.ts"]
+}
