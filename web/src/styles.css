@@ -1,0 +1,21 @@
+/*
+ * KitKat web app stylesheet entry.
+ *
+ * Order matters: import the design tokens + base resets from @kitkat/ui first,
+ * THEN Tailwind's layers. Tailwind scans web/src + the ui + core packages for
+ * utility classes (see tailwind.config.ts) and emits them here. Without these
+ * @tailwind directives the whole app renders unstyled — they're the fix for
+ * "it looks ugly."
+ */
+@import '@kitkat/ui/styles.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure the root is full-height so the app shell can fill the viewport. */
+html,
+body,
+#root {
+  height: 100%;
+}
