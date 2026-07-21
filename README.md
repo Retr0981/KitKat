@@ -1,28 +1,68 @@
 # KitKat
 
-> **The definitive open-source developer toolkit for WebMCP** — Postman for the Web Model Context Protocol. Validate, debug, simulate, and analyze WebMCP tools, **entirely client-side and local. Zero external API calls.**
-
-WebMCP is Google + Microsoft's proposed W3C standard that lets websites expose JavaScript functions and HTML forms as structured **tools** to AI agents via `navigator.modelContext`. KitKat is the developer tooling layer around it: discover a page's tool contract, test it before shipping, watch live invocations, simulate agents offline, and track usage — all without leaving your browser or leaking data.
+> **A developer toolkit for WebMCP — the new standard that lets websites expose "tools" AI assistants can call.** KitKat lets you test those tools before you ship them. Runs entirely in your browser; nothing leaves your machine.
 
 ---
 
-## ✨ What's inside
+## 🧭 Start here (if you're new)
 
-Four modules in one Chrome extension, plus a local analytics server and a shared engine:
+**Don't skip this section.** It explains *what KitKat actually is* in plain English, with no assumed knowledge.
 
-| Module | What it does | Status |
+### What problem does this solve?
+
+There's a new web standard called **WebMCP** (co-authored by Google and Microsoft). The idea:
+
+> Websites can now expose **"tools"** that AI assistants call directly — like functions.
+
+**Without WebMCP:** You ask an AI "find me a red dress and add it to cart." The AI has to *scrape the page* — read raw HTML, simulate clicks blindly. It's messy, fragile, and unreliable.
+
+**With WebMCP:** The website deliberately exposes typed tools:
+
+```
+shop.search(query, color)   →  returns matching products
+shop.addToCart(productId)   →  adds to the cart
+```
+
+The AI just *calls these tools*, exactly like calling a function in code. Clean, typed, reliable.
+
+### So what is KitKat?
+
+**KitKat is "Postman for WebMCP."** Postman lets you test APIs; KitKat lets you test these AI-facing website tools. Specifically, it answers the questions a developer asks while building WebMCP tools:
+
+- *"Did I write my tool correctly?"* → the **Validator** runs 5 categories of tests and tells you what to fix
+- *"What does an AI actually see when it reads my tool?"* → the **Debugger** shows you, live
+- *"Would an AI be able to use my tools end-to-end?"* → the **Sandbox** simulates an AI doing exactly that
+- *"How are my tools being used?"* → **Analytics** tracks invocations, success rates, timing
+
+### How do I use it? (60 seconds)
+
+```bash
+npm install      # one-time: download dependencies
+npm run web      # start the tool
+```
+
+Open `http://localhost:5174`, click **Launch the tool**, and you're in. No browser extension. No account. The sample tool is already loaded — click **Validator → Run validation** to see it work.
+
+That's the whole thing. Everything below is detail for when you want to go deeper.
+
+---
+
+## ✨ The four modules
+
+| Module | What it does | Plain-English version |
 |---|---|---|
-| **✓ Validator** | Detect a page's tools and run a 5-category suite (schema, parameters, execution, error handling, security) with fix suggestions + JSON/Markdown export. | **Deep** |
-| **⛏ Debugger** | Real-time inspector: tool state, full schemas, request/response payloads, consent flow, filterable timeline, freeze-frame diffing, LLM persona views, DOM overlay. | **Deep** |
-| **⬡ Sandbox** | Simulate agent interactions offline. Pick a scenario + persona + goal, watch a rule-based agent drive the discover → select → fill → invoke → respond → decide workflow. | Skeleton |
-| **▦ Analytics** | Local SQLite-backed dashboard: registrations, invocations, success/error rates, avg duration, top tools, error breakdown, trends. | Skeleton |
+| **✓ Validator** | 5-category test suite (schema, parameters, execution, errors, security) with fix suggestions + export. | "Did I build this tool right? Here's what to fix." |
+| **⛏ Debugger** | Live inspector: tool state, schemas, request/response, consent flow, timeline, LLM persona views. | "Show me exactly what an AI sees." |
+| **⬡ Sandbox** | Rule-based agent simulator drives the discover→select→fill→invoke→respond→decide workflow. | "Would an AI actually be able to use my tools?" |
+| **▦ Analytics** | Local SQLite dashboard: registrations, invocations, success/error rates, top tools, trends. | "How are my tools performing?" |
 
 Plus:
-- **🌐 Web app** — the no-install hosted tool (`npm run web`) plus a marketing landing page. Define tools in an inline editor and validate/debug them instantly, entirely in-browser.
-- **`@kitkat/ui`** — the shared design system (tokens, primitives, app shell) used by both the web app and the extension, so they never visually diverge.
-- **`@kitkat/core`** — a framework-agnostic engine: W3C-faithful types, a spec-accurate polyfill, the registration interceptor, a declarative-HTML scanner, the validation suite, and the agent engine. Reusable in tests, CLI, and other tools.
-- **Local server** — Express + SQLite event ingest (`npm run server`), serving the demo pages and exposing the dashboard data API.
-- **Demo pages** — real WebMCP pages (e-commerce, travel, forms) that use the native API when present and auto-polyfill otherwise.
+- **🌐 Web app** — the no-install tool you just ran (`npm run web`). The recommended way to use KitKat.
+- **`@kitkat/ui`** — the shared design system (buttons, colors, layout) used by both the web app and the extension.
+- **`@kitkat/core`** — the engine: spec-faithful types, a polyfill, the validator, the agent simulator. No UI; reusable anywhere.
+- **Local server** — optional; powers Analytics history and serves the demo pages (`npm run server`).
+- **Demo pages** — example WebMCP sites (e-commerce, travel, forms) to test against.
+- **Chrome extension** — the power-user version; can inspect *real* websites you browse (the web app can only see tools you define inline). See below.
 
 ---
 
@@ -73,6 +113,20 @@ This serves:
 5. Click the KitKat toolbar action, open DevTools → **KitKat** panel, or press **⌘K**.
 
 You should see the page's tools appear in the Validator within ~2 seconds.
+
+### 🛟 Common problems (and fixes)
+
+**"Failed to load extension — Manifest file is missing"**
+You loaded the wrong folder. Chrome needs the *built* manifest, which lives in `extension/dist`, **not** the `extension/` source folder. Re-run `npm run build -w kitkat-extension`, then **Load unpacked → select `extension/dist`**. (This is exactly why the web app exists — `npm run web` has no such gotchas.)
+
+**"The site looks unstyled / ugly"**
+If styles are missing, the CSS pipeline didn't build. Run `npm run build -w kitkat-web` (production) or restart `npm run web` (dev). The build generates ~230 utility classes; if you see raw unstyled HTML, they didn't emit. A clean `rm -rf web/dist node_modules/.vite && npm run web` fixes it.
+
+**"`npm install` warns about install scripts (better-sqlite3)"**
+The analytics database needs a native compile. Run `npm approve-scripts better-sqlite3`, then `npm install` again. If you skip Analytics entirely, you can ignore this — everything else works without it.
+
+**"Nothing happens when I click a tool"**
+Make sure you're on a page that actually has WebMCP tools. Open a demo (`http://localhost:7421/ecommerce/` with the server running) or use the web app's inline Editor to define one.
 
 ---
 
@@ -167,6 +221,46 @@ KitKat/
 ```
 
 > **Architecture note:** the chrome coupling in the extension lives in a thin transport layer; everything else — `@kitkat/core`, `@kitkat/ui`, the store, the modules — is transport-agnostic. The web app implements the same `ToolBackend` interface against an in-memory registry, so the redesigned modules run identically in both.
+
+---
+
+## 🔧 How it works (under the hood, in plain English)
+
+The cleverest part of KitKat is a trick that lets the **same four screens run in two completely different places** — inside a website AND inside a browser extension — without duplicating any code. Here's how.
+
+### The "wall socket" trick
+
+Imagine a wall socket. Your phone charger doesn't know or care where the electricity comes from — a power plant, a solar panel, a battery. It just plugs in and works.
+
+KitKat does the same thing. There's a contract (programmers call it an *interface*) named **`ToolBackend`** — think of it as the wall socket:
+
+```
+ToolBackend = {
+  getTools()      // "what tools exist right now?"
+  invoke(name)    // "run this tool"
+  validate()      // "test all the tools"
+  ...
+}
+```
+
+The four screens (Validator, Debugger, Sandbox, Analytics) **only ever talk to this socket**. They never ask what's behind it.
+
+Then we plug in different "power sources":
+
+- **The web app** plugs in a **simulated socket** — a list of tools you typed into the editor, running in your browser's memory.
+- **The extension** plugs in a **real socket** — it actually inspects the live webpage you're browsing and uses *its* tools.
+
+**Same screens, different power source.** Build once, use twice. This is the single idea that makes the whole project work. Programmers call it "an abstraction" — hiding messy details behind a simple, predictable interface.
+
+### What each piece does, one level deeper
+
+- **`@kitkat/core`** (the engine) does the real work: it can *register* tools, *invoke* them, *test* them, and *simulate* an AI using them. It has no buttons or screens — just pure logic. That's deliberate: it means the same engine powers the web app, the extension, and even automated tests.
+- **`@kitkat/ui`** (the design system) is every visual element: the dark theme, buttons, panels, the sidebar layout. Shared so the web app and extension never look different.
+- **The polyfill** — WebMCP is so new that most browsers don't support it yet. KitKat ships a faithful *fake* of the browser's WebMCP feature, so everything works today, on any browser. When real WebMCP arrives, KitKat uses it automatically.
+
+### Data flow in one sentence
+
+You define a tool → it goes into the `ToolBackend` → the screens read from that backend → when you click "validate" or "simulate," the `@kitkat/core` engine does the actual testing → results flow back to the screen.
 
 ---
 
