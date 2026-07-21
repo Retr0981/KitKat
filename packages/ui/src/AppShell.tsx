@@ -55,7 +55,7 @@ export function AppShell({
           <Logo />
           {!compact && (
             <span className="font-semibold text-content-primary tracking-tight">
-              MCP<span className="text-accent">Kit</span>
+              Kit<span className="text-accent">Kat</span>
             </span>
           )}
         </div>
@@ -128,7 +128,7 @@ function Logo() {
       className="inline-flex items-center justify-center w-7 h-7 rounded-sm text-white text-sm font-bold"
       style={{ background: 'linear-gradient(135deg, var(--accent), var(--teal))' }}
     >
-      M
+      K
     </span>
   );
 }
